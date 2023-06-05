@@ -30,7 +30,6 @@ app.get("/orders", (req, res) => {
 `;
   res.send(formHtml);
 });
-
 app.get("/orders/:orderId", async (req, res) => {
   const orderId = req.params.orderId;
 
@@ -47,36 +46,23 @@ app.get("/orders/:orderId", async (req, res) => {
       <html>
       <head>
         <link rel="stylesheet" type="text/css" href="/styles.css">
+        <style> 
+        </style>
       </head>
       <body>
-        <div class="container">
-          <h2>Статусы:</h2>
+        <div class="container">       
       `;
-
-      //formattedOrder += "<h2>Статусы:</h2>";
-      if (order.statuses?.length > 0) {
-        for (const status of order.statuses) {
-          formattedOrder += `<p><strong></strong> ${status.status}`;
-          if (status.ready) {
-            formattedOrder += " (готово)";
-          } else if (status.current) {
-            formattedOrder += ` <span class="status-dot completed"></span>`;
-          } else {
-            formattedOrder += ` <span class="status-dot upcoming"></span>`;
-          }
-          formattedOrder += "</p>";
-          
-        }
-      } else {
-        formattedOrder += "<p>No statuses found</p>";
-      }
+      formattedOrder += `<h2>Номер Заказа:</h2><p>${orderId}</p>`;
 
       formattedOrder += "<h2>Товары:</h2>";
+      let index = 0;
       if (positions && positions.length > 0) {
         for (const position of positions) {
-          formattedOrder += `<p><strong>Название:</strong> ${position.assortment.name}</p>`;
+          index++;
+          formattedOrder += `<p><strong>Товар ${index}:</strong> ${position.assortment.name}</p>`;
+        }
 
-          // Get product images
+        for (const position of positions) {
           const baseProductLink = await getBaseProductLink(
             position.assortment.id
           );
@@ -88,7 +74,7 @@ app.get("/orders/:orderId", async (req, res) => {
             const images = await getProductImages(baseProductId);
             if (images && images.length > 0) {
               for (const image of images) {
-                formattedOrder += `<img src="${image.miniature.href}" style="margin-bottom: 10px;">`;
+                formattedOrder += `<img src="${image.miniature.href}" class="product-image">`;
               }
             } else {
               formattedOrder += "<p>No product images found</p>";
@@ -101,11 +87,28 @@ app.get("/orders/:orderId", async (req, res) => {
         formattedOrder += "<p>No positions found</p>";
       }
 
-      formattedOrder += `<h2>Номер Заказа:</h2><p>${orderId}</p>`;
       formattedOrder += `<p><strong>Описание:</strong> ${order.description.replace(
         /\n/g,
         "<br>"
       )}</p>`;
+
+      formattedOrder += `<h2>&nbsp;&nbsp;&nbsp;Статус заказа:</h2>`;
+      if (order.statuses?.length > 0) {
+        for (const status of order.statuses) {
+          if (status.ready) {
+            formattedOrder += " (готово)";
+          } else if (status.current) {
+            formattedOrder += `&nbsp;&nbsp;&nbsp;<span class="status-dot completed"></span>`;
+            formattedOrder += `<strong>&nbsp;&nbsp;&nbsp;${status.status}</strong>`;
+          } else {
+            formattedOrder += `&nbsp;&nbsp;&nbsp;<span class="status-dot upcoming"></span>`;
+            formattedOrder += `<strong>&nbsp;&nbsp;&nbsp;${status.status}</strong>`;
+          }
+          formattedOrder += "</p>";
+        }
+      } else {
+        formattedOrder += "<p>No statuses found</p>";
+      }
 
       res.send(formattedOrder);
     } else {
@@ -124,7 +127,7 @@ app.post("/orders", async (req, res) => {
     const order = await getCustomerOrderById(orderId);
     if (order) {
       console.log(order);
-      const redirectUrl = `http://localhost:3000/orders/${orderId}`;
+      const redirectUrl = `http://80.90.184.111:3000/orders/${orderId}`;
       res.redirect(redirectUrl);
     } else {
       res.send("Order not found");
@@ -255,7 +258,7 @@ async function getCustomerOrderPositions(orderId) {
         Authorization: authHeader,
       },
     });
-    return response.data.rows;
+    return response.data.rows.slice(0, -1);
   } catch (error) {
     throw error;
   }
@@ -326,8 +329,20 @@ function getStatusByTimeline(order) {
       ready: false,
     },
     {
+      status: "Доставляется на склад в Австрии",
+      duration: 1 * 24 * 60 * 60 * 1000,
+      current: false,
+      ready: false,
+    },
+    {
       status: "На складе в Австрии",
       duration: 5 * 24 * 60 * 60 * 1000,
+      current: false,
+      ready: false,
+    },
+    {
+      status: "Доставляется в Армении",
+      duration: 2 * 24 * 60 * 60 * 1000,
       current: false,
       ready: false,
     },
@@ -341,14 +356,12 @@ function getStatusByTimeline(order) {
   for (let i = 0; i < statuses.length; i++) {
     const status = statuses[i];
     accumulatedTime += status.duration;
-    status.ready = false;
 
     if (timeDifference < accumulatedTime) {
       status.current = true;
-      break;
-    }
-
-    if (i === statuses.length - 1) {
+      status.ready = false;
+    } else {
+      status.current = false;
       status.ready = true;
     }
   }

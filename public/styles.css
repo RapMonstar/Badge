@@ -57,3 +57,21 @@ button:hover {
 .status-dot.upcoming {
   background-color: gray; /* Серый цвет для предстоящего статуса */
 }
+
+
+.product-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.image-container {
+  display: flex;
+  gap: 10px;
+}
+
+
+.product-image {
+  width: 150px;
+  height: 150px;
+}
