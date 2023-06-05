@@ -127,7 +127,7 @@ app.post("/orders", async (req, res) => {
     const order = await getCustomerOrderById(orderId);
     if (order) {
       console.log(order); //http://localhost:3000
-      const redirectUrl = `http://80.90.184.111/orders/${orderId}`;
+      const redirectUrl = `http://80.90.184.111:3000/orders/${orderId}`;
       res.redirect(redirectUrl);
     } else {
       res.send("Order not found");
