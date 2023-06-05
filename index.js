@@ -5,7 +5,7 @@ const username = "admin@dolgovdmit";
 const password = "5d7ad8e9fb";
 
 const app = express();
-const port = 3000;
+const port = 80;
 
 app.use(express.static("public"));
 app.use(express.json());
@@ -127,7 +127,7 @@ app.post("/orders", async (req, res) => {
     const order = await getCustomerOrderById(orderId);
     if (order) {
       console.log(order); //http://localhost:3000
-      const redirectUrl = `http://80.90.184.111:3000/orders/${orderId}`;
+      const redirectUrl = `http://80.90.184.111/orders/${orderId}`;
       res.redirect(redirectUrl);
     } else {
       res.send("Order not found");
