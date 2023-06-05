@@ -126,8 +126,8 @@ app.post("/orders", async (req, res) => {
   try {
     const order = await getCustomerOrderById(orderId);
     if (order) {
-      console.log(order);
-      const redirectUrl = `http://80.90.184.111:3000/orders/${orderId}`;
+      console.log(order); //http://80.90.184.111:3000
+      const redirectUrl = `http://localhost:3000/orders/${orderId}`;
       res.redirect(redirectUrl);
     } else {
       res.send("Order not found");
@@ -330,7 +330,7 @@ function getStatusByTimeline(order) {
     },
     {
       status: "Доставляется на склад в Австрии",
-      duration: 1 * 24 * 60 * 60 * 1000,
+      duration: 2 * 24 * 60 * 60 * 1000,
       current: false,
       ready: false,
     },
@@ -356,12 +356,14 @@ function getStatusByTimeline(order) {
   for (let i = 0; i < statuses.length; i++) {
     const status = statuses[i];
     accumulatedTime += status.duration;
+    status.ready = false;
 
     if (timeDifference < accumulatedTime) {
       status.current = true;
-      status.ready = false;
-    } else {
-      status.current = false;
+      break;
+    }
+
+    if (i === statuses.length - 1) {
       status.ready = true;
     }
   }
