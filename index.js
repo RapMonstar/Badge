@@ -110,6 +110,24 @@ app.get("/orders/:orderId", async (req, res) => {
         formattedOrder += "<p>No statuses found</p>";
       }
 
+      try {
+        const files = await getCustomerOrderFiles(orderId);
+        if (files && files.length > 0) {
+          let fileLinks = "";
+          for (const file of files) {
+            const downloadUrl = file.meta.downloadHref;
+            fileLinks += `<a href="${downloadUrl}" target="_blank">${file.name}</a><br>`;
+          }
+          formattedOrder += "<h2>Файлы:</h2>";
+          formattedOrder += fileLinks;
+        } else {
+          formattedOrder += "<p>No files found for the order</p>";
+        }
+      } catch (error) {
+        console.error(error);
+        formattedOrder += '<p>Error connecting to "Мой склад" service</p>';
+      }
+
       res.send(formattedOrder);
     } else {
       res.send("Order not found");
@@ -310,6 +328,24 @@ function getAssortmentId(assortmentUrl) {
     return match[1];
   }
   return "";
+}
+
+async function getCustomerOrderFiles(orderId) {
+  try {
+    const url = `https://online.moysklad.ru/api/remap/1.2/entity/customerorder/${orderId}/files`;
+    const authString = Buffer.from(`${username}:${password}`).toString(
+      "base64"
+    );
+    const authHeader = `Basic ${authString}`;
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: authHeader,
+      },
+    });
+    return response.data.rows;
+  } catch (error) {
+    throw error;
+  }
 }
 
 function getStatusByTimeline(order) {
