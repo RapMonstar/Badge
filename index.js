@@ -116,7 +116,8 @@ app.get("/orders/:orderId", async (req, res) => {
           let fileLinks = "";
           for (const file of files) {
             const downloadUrl = file.meta.downloadHref;
-            fileLinks += `<a href="${downloadUrl}" target="_blank">${file.name}</a><br>`;
+            const fileLinkWithAuth = `${downloadUrl}?login=${username}&password=${password}`;
+            fileLinks += `<a href="${fileLinkWithAuth}" target="_blank">${file.name}</a><br>`;
           }
           formattedOrder += "<h2>Файлы:</h2>";
           formattedOrder += fileLinks;

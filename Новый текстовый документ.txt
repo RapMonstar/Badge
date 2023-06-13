@@ -1,1 +1,3 @@
 pm2 start index.js
+pm2 stop index.js
+ssh root@80.90.184.111
